@@ -1,0 +1,3 @@
+#name=WH125    file=/eos/uscms/store/group/lpchbb/HeppyNtuples/V25/WH_HToBB_WToLNu_M125_13TeV_amcatnloFXFX_madspin_pythia8/VHBB_HEPPY_V25_WH_HToBB_WToLNu_M125_13TeV_amcatnloFXFX_madspin_Py8__RunIISummer16MAv2-PUMoriond17_80r2as_2016_TrancheIV_v6-v1/170128_122518/0000/tree_10.root  type=-125010 xsec=0.25942
+name=WH125    dir=/store/group/lpchbb/HeppyNtuples/V25/WH_HToBB_WToLNu_M125_13TeV_amcatnloFXFX_madspin_pythia8/   type=-125010 xsec=0.25942
+

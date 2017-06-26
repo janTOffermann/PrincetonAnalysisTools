@@ -439,3 +439,7 @@ type=7  name=Jet_corr_CorrelationGroupFlavorUp_ratio        max=100   lengthBran
 type=7  name=Jet_corr_CorrelationGroupFlavorDown_ratio        max=100   lengthBranch=nJet onlyMC=1
 type=7  name=Jet_corr_CorrelationGroupUncorrelatedUp_ratio        max=100   lengthBranch=nJet onlyMC=1
 type=7  name=Jet_corr_CorrelationGroupUncorrelatedDown_ratio        max=100   lengthBranch=nJet onlyMC=1
+
+type=7  name=FatjetAK08ungroomed_VdPhi        max=10    lengthBranch=nFatjetAK08ungroomed onlyMC=0
+type=7  name=FatjetAK08ungroomed_LepdR        max=10    lengthBranch=nFatjetAK08ungroomed onlyMC=0
+type=1  name=FatjetAK08ungroomed_highestbb

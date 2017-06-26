@@ -333,3 +333,13 @@ type=7  name=softActivityVHJets_pt              max=50
 type=7  name=softActivityVHJets_eta             max=50
 type=7  name=softActivityVHJets_phi             max=50
 type=7  name=softActivityVHJets_mass            max=50
+
+#Code below added by Jan
+type=7  name=FatjetAK08ungroomed_msoftdrop        max=10  onlyMC=1
+type=7  name=FatjetAK08ungroomed_mpruned        max=10  onlyMC=1
+type=7  name=FatjetAK08ungroomed_mprunedcorr        max=10  onlyMC=1
+type=7  name=FatjetAK08ungroomed_puppi_mass        max=10  onlyMC=1
+type=7  name=FatjetAK08ungroomed_puppi_msoftdrop        max=10  onlyMC=1
+type=7  name=FatjetAK08ungroomed_puppi_msoftdrop_corrL2L3        max=10  onlyMC=1
+type=7  name=FatjetAK08ungroomed_puppi_msoftdrop_raw        max=10  onlyMC=1
+type=7  name=FatjetAK08ungroomed_puppi_pt           max=10  onlyMC=1

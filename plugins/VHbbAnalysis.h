@@ -33,6 +33,7 @@ class VHbbAnalysis : public AnalysisManager {
     std::pair<int,int> HighestPtBJets();
     std::pair<int,int> HighestCSVBJets();
     std::pair<int,int> HighestPtJJBJets();
+    Int_t HighestBBTagFatJet();
     double GetRecoTopMass(TLorentzVector Jet, bool isJet=true, int useMET=0, bool regPT=true);
     float ptWeightQCD(int nGenVbosons=0, float lheHT=0., int GenVbosons_pdgId=0);
     float ptWeightEWK(int nGenVbosons=0,float GenVbosons_pt=0.,int VtypeSim=0,int GenVbosons_pdgId=0);

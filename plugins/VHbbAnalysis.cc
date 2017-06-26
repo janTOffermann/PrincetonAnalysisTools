@@ -311,11 +311,16 @@ bool VHbbAnalysis::Analyze(){
     HJ1_noreg.SetPtEtaPhiM(f["Jet_pt"][*in["hJetInd1"]], f["Jet_eta"][*in["hJetInd1"]], f["Jet_phi"][*in["hJetInd1"]], f["Jet_mass"][*in["hJetInd1"]]);
     HJ2_noreg.SetPtEtaPhiM(f["Jet_pt"][*in["hJetInd2"]], f["Jet_eta"][*in["hJetInd2"]], f["Jet_phi"][*in["hJetInd2"]], f["Jet_mass"][*in["hJetInd2"]]);
     Hbb_noreg = HJ1_noreg + HJ2_noreg;
-
     *f["H_pt"] = Hbb.Pt();
-    if (*f["H_pt"] < *f["hptcut"]) sel=false;
+    if(int(*f["doBoost"])==0){ //Jan
+        if (*f["H_pt"] < *f["hptcut"]) sel=false;
+    }
+    else{
+        if (*f["H_pt"] < *f["hptcut"] && f["FatjetAK08ungroomed_pt"][0] < *f["hptcut"]) sel=false;
+    }
+
     if (sel) *in["cutFlow"] += 1; // pT(jj) cut
-   
+
     if (*f["met_pt"] < *f["metcut"]) sel = false;
     if (sel) *in["cutFlow"] += 1; // met cut
     
@@ -356,7 +361,8 @@ bool VHbbAnalysis::Analyze(){
     if (sel) *in["cutFlow"] += 1;   
 
 
-    TLorentzVector W,Lep, MET, GenBJ1, GenBJ2, GenBJJ;
+    TLorentzVector W,Lep, MET, GenBJ1, GenBJ2, GenBJJ, Fatjet; // Fatjet added by Jan
+    std::vector<TLorentzVector> Fatjet_vec; // vector of Fatjets - we will find HVdPhi equivalent for all of them
     // Reconstruct W
     if(debug>1000) {
         std::cout<<"met "<<*f["met_pt"]<<" "<<*f["met_phi"]<<std::endl;
@@ -457,7 +463,22 @@ bool VHbbAnalysis::Analyze(){
         *f["HJ2_WJet2_dEta"] = -999;
     }
 
+    //code below added by Jan
+    //the vector is probably unnecessary, we can probably do all the calcs in the loop
+    //and even perform the cut here (I think), but it might mess up our organization (worth thinking about a bit)
+    for(UInt_t index = 0; index < *in["nFatjetAK08ungroomed"]; index++){
+        TLorentzVector Fatjet_tmp = TLorentzVector();
+        Fatjet_tmp.SetPtEtaPhiM(f["FatjetAK08ungroomed_pt"][index], f["FatjetAK08ungroomed_eta"][index], f["FatjetAK08ungroomed_phi"][index], f["FatjetAK08ungroomed_mass"][index]);
+        Fatjet_vec.push_back(Fatjet_tmp);   
+    }
+
+
     // Now we can calculate whatever we want (transverse) with W and H four-vectors
+    for(UInt_t index = 0; index < *in["nFatjetAK08ungroomed"]; index++) { // added by Jan
+        f["FatjetAK08ungroomed_VdPhi"][index] = Fatjet_vec.at(index).DeltaPhi(W);
+        f["FatjetAK08ungroomed_LepdR"][index] = Fatjet_vec.at(index).DeltaR(Lep);
+    }
+
     *f["HVdPhi"] = Hbb.DeltaPhi(W);
     *f["HVdEta"] = fabs(Hbb.Eta() - W.Eta());
     TLorentzVector neutrino = getNu4Momentum(Lep, MET);
@@ -701,9 +722,40 @@ bool VHbbAnalysis::Analyze(){
 
     if(*in["nAddJets252p9_puid"] >= *f["nAddJetsCut"]) sel = false;
     if (sel) *in["cutFlow"] += 1; // additional jet veto
+
+    //HVdPhi cut. For the boosted case, we loop through the Fatjet vector.
+   // Bool_t[*in["nFatjetAK08ungroomed"]] Fatjet_candidates;
+   //
+   // for(UInt_t index = 0; index < *in["nFatjetAK08ungroomed"]; index++) Fatjet_candidates[index] = kTRUE;
+   //
+   // if (int(*f["doBoost"])==0) {
+   //     if(fabs(*f["HVdPhi"]) < *f["HVDPhiCut"]) sel = false;
+   // }
+   // else{
+   //     Bool_t passed = kFALSE;
+   //     for(UInt_t index = 0; index < *in["nFatjetAK08ungroomed"]; index++){
+   //         if(f["FatjetAK08ungroomed_VdPhi"][index] > *f["HVDPhiCut"]){
+   //             passed = kTRUE;
+   //         }
+   //         else{
+   //             Fatjet_candidates[index] = kFALSE;
+   //         }
+   //     }
+   //     if(fabs(*f["HVdPhi"]) < *f["HVDPhiCut"] && passed = kFALSE) sel = false;
+   // }
     
-    if(fabs(*f["HVdPhi"]) < *f["HVDPhiCut"]) sel = false;
-     if (sel) *in["cutFlow"] += 1; // dPhi(jj,W) cut
+    //FATJET CUTS V2 BELOW
+    
+    //If we find a "good" fatjet passing cuts, this gives its index
+    //otherwise it returns -1
+    Int_t fatjet_index = HighestBBTagFatJet();
+    
+    //If our b jets don't pass the HVDPhiCut AND we don't have a good fatjet, we can't proceed
+    if(fatjet_index == -1 && fabs(*f["HVdPhi"]) < *f["HVDPhiCut"] ) sel = false;
+
+    *in["FatjetAK08ungroomed_highestbb"] = fatjet_index; // if -1, we know we shouldn't use it!
+
+    if (sel) *in["cutFlow"] += 1; // dPhi(jj,W) cut
 
     // let's do this for now in WorkspaceAnalysis since it's fast to rerun there
     // mass window, use parameterized mean/sigma from jet mass res. study
@@ -1665,6 +1717,28 @@ std::pair<int,int> VHbbAnalysis::HighestPtBJets(){
     return pair;
 }
 
+// This function finds the Fatjet with the highest BB tag value,
+// while performing necessary cuts (e.g. not considering jets
+// that don't make the HVdPhi cut)
+// Added by Jan
+Int_t VHbbAnalysis::HighestBBTagFatJet(){
+
+    Int_t index = -1;
+    Float_t max_bb_tag = -2.;
+    for(Int_t i = 0; i < *in["nFatjetAK08ungroomed"]; i++){
+        
+        if(f["FatjetAK08ungroomed_VdPhi"][i] < fabs( *f["HVDPhiCut"])) continue;
+        //Other cuts go here as continue statements
+
+        if(f["FatjetAK08ungroomed_bbtag"][i] > max_bb_tag){
+            
+            max_bb_tag = f["FatjetAK08ungroomed_bbtag"][i];
+            index = i;
+        }
+    }
+
+    return index;
+}
 
 std::pair<int,int> VHbbAnalysis::HighestCSVBJets(){
     std::pair<int,int> pair(-1,-1);

@@ -434,6 +434,7 @@ void AnalysisManager::Loop(std::string sampleName, std::string filename, std::st
         bool sampleFound=false;
         for(int i=0; i<(int)samples.size(); i++) {
             if(sampleName == samples[i].sampleName) {
+                ofile = new TFile(ofilename.c_str(), "recreate"); // added by Jan
                 sampleFound=true;
                 SampleContainer* onlySample = new SampleContainer(samples[i]);
                 if (filenames.size() > 0) {
@@ -461,7 +462,7 @@ void AnalysisManager::Loop(std::string sampleName, std::string filename, std::st
                 else {
                     //ofile = new TFile(Form("%s_%s.root",outputTreeName.c_str(),samples[0].sampleName.c_str()),"recreate");
                 }
-                ofile = new TFile(ofilename.c_str(), "recreate");
+             // ofile = new TFile(ofilename.c_str(), "recreate");
                 samples.clear();
                 samples.push_back(*onlySample);
                 break;
