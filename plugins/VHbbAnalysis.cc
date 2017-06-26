@@ -253,7 +253,7 @@ bool VHbbAnalysis::Analyze(){
     //std::pair<int,int> bjets=HighestPtJJBJets(); 
 
     // put CSV cuts out of selection functions
-    if(bjets.first != -1 && bjets.second != -1){
+    if(bjets.first != -1 && bjets.second != -1 && Int_t(*f["doBoost"]) == 0){
         if(f["Jet_btagCSV"][bjets.first]<*f["j1ptCSV"] || f["Jet_btagCSV"][bjets.second]<*f["j2ptCSV"]){
             sel=false;
         }
